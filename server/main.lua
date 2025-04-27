@@ -91,20 +91,37 @@ local function modifyPermissionToSeeRadioList(source, state)
     Player(source).state:set(Shared.State.allowedToSeeRadioList, state, true)
 end
 
+local function getPlayerRadioData(source)
+    local playerName = getPlayerName(source)
+    local gangRank = 0
+    
+    if Framework.Initial == "qb" then
+        local player = Framework.GetPlayer(source)
+        if player and player.PlayerData and player.PlayerData.gang then
+            gangRank = player.PlayerData.gang.grade.level
+        end
+    end
+    
+    return {
+        name = playerName,
+        gangRank = gangRank
+    }
+end
+
 callback.register(Shared.Callback.getPlayersInRadio, function(source, radioChannel)
     local playersInRadio = {}
     if not source then return playersInRadio end
     radioChannel = radioChannel or Player(source).state.radioChannel
     if not radioChannel then return playersInRadio end
     for player in pairs(pma_voice:getPlayersInRadioChannel(radioChannel)) do
-        playersInRadio[player] = getPlayerName(player)
+        playersInRadio[player] = getPlayerRadioData(player)
     end
     local radioChannelName = getRadioChannelName(radioChannel)
     return playersInRadio, radioChannel, radioChannelName
 end)
 
 callback.register(Shared.Callback.getPlayerName, function(_, player)
-    return getPlayerName(player)
+    return getPlayerRadioData(player)
 end)
 
 if Config.LetPlayersSetTheirOwnNameInRadio then
